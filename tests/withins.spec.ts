@@ -18,17 +18,27 @@ import {JobProcessor} from "../src/entity/job/JobProcessor";
  * }
  */
 
+
 const processor = new JobProcessor();
+test.describe.serial('WithIns', () => {
+    test('Data Sync', async ({ page }) => {
+        console.log('Data Sync');
+        await processor.sync();
+    });
 
-test.describe('withIns 크롤링', () => {
+    test.describe('크롤링',  () => {
+        processor.loadFetchSync();
+        for (const job of processor) {
+            test(job.jobName, async ({ page }) => {
+                await processor.runner(page, job)
+            });
+        }
+    });
 
-    for (const job of processor) {
-        test(job.jobName, async ({ page }) => {
-            const result = await job.run(page);
-            FileManager.save(result);
-        });
-    }
-
+    test('Data Sync Complete', ({ page }) => {
+        processor.syncComplete();
+    })
 });
+
 
 

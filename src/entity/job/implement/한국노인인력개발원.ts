@@ -64,7 +64,7 @@ class 채용 extends SimpleTemplateStep {
     async select(card: Locator, baseUrl: string): Promise<object> {
         const a = card.locator('.tal a');
 
-        const link = baseUrl + await a.getAttribute('href');
+        const link = baseUrl + (await a.getAttribute('href')).replace(' ', '');
         const id = new URLSearchParams(link).get('cid');
         const title = (await a.textContent()).trim()
 

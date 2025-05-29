@@ -3,6 +3,31 @@ import fs from "node:fs";
 
 export class SyncManager {
 
+    static fetchSyncJson = 'fetchSync.json';
+
+    static async fetchSync() {
+        const json = await fetch('http://localhost:8080/api/v1/sync').then(res => res.json());
+
+        const syncFolderPath = path.join(process.cwd(), 'sync')
+        const filePath = path.join(syncFolderPath, this.fetchSyncJson);
+
+        // sync 폴더가 없으면 생성
+        if (!fs.existsSync(syncFolderPath)) {
+            fs.mkdirSync(syncFolderPath, { recursive: true });
+        }
+
+        fs.writeFileSync(filePath, JSON.stringify(json), 'utf-8');
+        console.log(`파일 생성됨: ${filePath}`);
+    }
+    static loadFetchSync() {
+        const syncFolderPath = path.join(process.cwd(), 'sync')
+        const filePath = path.join(syncFolderPath, this.fetchSyncJson);
+        if (!fs.existsSync(filePath)) {
+            return {};
+        }
+        return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    }
+
     static sync(jobName: string): Date {
         try {
             const syncFolderPath = path.join(process.cwd(), 'sync')
@@ -28,20 +53,6 @@ export class SyncManager {
             console.error(`Job.syncSync 에러 발생:`, error);
             throw error;
         }
-    }
-
-    static lastModifiedSync(jobName: string) : Date {
-        const syncFolderPath = path.join(process.cwd(), 'sync')
-        const filePath = path.join(syncFolderPath, `${jobName}.txt`);
-
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
-
-        const dateString = this.formatDate(tomorrow);
-        fs.writeFileSync(filePath, dateString, 'utf-8');
-        return tomorrow;
     }
 
     static formatDate(date: Date): string {
@@ -72,5 +83,4 @@ export class SyncManager {
         // console.log(`syncDate : ${syncDate}, targetDate : ${targetDate}, result : ${targetDate >= syncDate}`)
         return targetDate >= syncDate;
     }
-
 }
